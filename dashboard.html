@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>IP Tracker Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #111; color: #eee; }
+    input, button { padding: 8px; margin: 6px 0; }
+    pre { background: #222; padding: 12px; overflow: auto; max-height: 60vh; }
+    .row { display:flex; gap:8px; align-items:center; }
+  </style>
+</head>
+<body>
+  <h2>IP Tracker — Dashboard</h2>
+  <div class="row">
+    <input id="code" placeholder="link code (e.g. abc123)" />
+    <button onclick="load()">Load</button>
+    <button onclick="create()">Create test short link</button>
+  </div>
+  <div>
+    <label>Target URL for create (when creating):</label><br/>
+    <input id="target" placeholder="https://example.com" style="width:60%" />
+  </div>
+  <pre id="out">No data loaded.</pre>
+
+  <script>
+    async function load(){
+      const code = document.getElementById('code').value.trim();
+      if(!code) return alert('code?');
+      const r = await fetch('/api/visits/' + code);
+      const j = await r.json();
+      document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+    }
+
+    async function create(){
+      const target = document.getElementById('target').value.trim();
+      if(!target) return alert('target?');
+      const r = await fetch('/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target })
+      });
+      const j = await r.json();
+      if(j.short){
+        document.getElementById('code').value = j.code;
+        alert('Short link: ' + j.short);
+      } else {
+        alert('Create failed: ' + JSON.stringify(j));
+      }
+    }
+  </script>
+</body>
+</html>
